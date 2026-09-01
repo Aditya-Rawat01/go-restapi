@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/Aditya-Rawat01/go-restapi/internal/config/utils"
 	"github.com/Aditya-Rawat01/go-restapi/internal/storage"
@@ -44,9 +45,32 @@ func New(storage storage.Storage) http.HandlerFunc {
 		}
 
 		utils.WriteJSON(w, http.StatusCreated, map[string]any{
-			"status": "ok",
-			"msg":    "Student created successfully",
+			"status":  "ok",
+			"msg":     "Student created successfully",
 			"student": student,
 		})
+	}
+}
+
+func GetById(storage storage.Storage) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		id := r.PathValue(("id"))
+		slog.Info("Getting info of the student with id: ", slog.String("id", id))
+
+		intId, err := strconv.ParseInt(id, 10, 64)
+		if err != nil {
+			utils.WriteJSON(w, http.StatusBadRequest, utils.GeneralError(err))
+			return
+		}
+		student, err := storage.GetStudentByID(intId)
+
+		if err != nil {
+			slog.Error("error getting user", slog.String("id",id))
+			utils.WriteJSON(w, http.StatusInternalServerError, utils.GeneralError(err))
+			return
+		}
+
+		utils.WriteJSON(w, http.StatusOK, student)
 	}
 }

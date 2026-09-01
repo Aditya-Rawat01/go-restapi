@@ -21,6 +21,7 @@ func ServerHandling(cfg *config.Config, storage *sqlite.Sqlite) {
 
 	router.HandleFunc("GET /ping", ping.New())
 	router.HandleFunc("POST /api/students", student.New(storage))
+	router.HandleFunc("POST /api/students/{id}", student.GetById(storage))
 
 	server := http.Server{
 		Addr:    cfg.Addr,
