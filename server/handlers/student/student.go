@@ -9,11 +9,12 @@ import (
 	"net/http"
 
 	"github.com/Aditya-Rawat01/go-restapi/internal/config/utils"
+	"github.com/Aditya-Rawat01/go-restapi/internal/storage"
 	"github.com/Aditya-Rawat01/go-restapi/internal/types"
 	"github.com/go-playground/validator/v10"
 )
 
-func New() http.HandlerFunc {
+func New(storage storage.Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Creating a student...")
 
@@ -35,9 +36,16 @@ func New() http.HandlerFunc {
 			return
 		}
 
+		lastId, err := storage.CreateStudent(student.Name, student.Email, student.Age)
+		student.Id = lastId
+		if err != nil {
+			utils.WriteJSON(w, http.StatusInternalServerError, err)
+			return
+		}
+
 		utils.WriteJSON(w, http.StatusCreated, map[string]any{
-			"status":  "ok",
-			"msg":     "Student created successfully",
+			"status": "ok",
+			"msg":    "Student created successfully",
 			"student": student,
 		})
 	}

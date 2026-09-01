@@ -11,16 +11,16 @@ import (
 	"time"
 
 	"github.com/Aditya-Rawat01/go-restapi/internal/config"
+	"github.com/Aditya-Rawat01/go-restapi/internal/storage/sqlite"
 	"github.com/Aditya-Rawat01/go-restapi/server/handlers/ping"
 	"github.com/Aditya-Rawat01/go-restapi/server/handlers/student"
 )
 
-func ServerHandling() {
-	cfg := config.MustLoad()
+func ServerHandling(cfg *config.Config, storage *sqlite.Sqlite) {
 	router := http.NewServeMux()
 
 	router.HandleFunc("GET /ping", ping.New())
-	router.HandleFunc("POST /api/students", student.New())
+	router.HandleFunc("POST /api/students", student.New(storage))
 
 	server := http.Server{
 		Addr:    cfg.Addr,
