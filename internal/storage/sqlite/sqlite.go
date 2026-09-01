@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/Aditya-Rawat01/go-restapi/internal/config"
 	"github.com/Aditya-Rawat01/go-restapi/internal/types"
@@ -96,4 +97,64 @@ func (s *Sqlite) GetAllStudents() ([]types.Student, error) {
 	}
 
 	return students, nil
+}
+
+func (s *Sqlite) UpdateStudent(data types.UpdateStudent, id int64) (types.Student, error) {
+	query := "UPDATE students SET "
+	updates := []string{}
+	args := []any{}
+	if data.Name != nil {
+		updates = append(updates, "name=? ")
+		args = append(args, *data.Name)
+	}
+	if data.Age != nil {
+		updates = append(updates, "age=? ")
+		args = append(args, *data.Age)
+	}
+	if data.Email != nil {
+		updates = append(updates, "email=? ")
+		args = append(args, *data.Email)
+	}
+
+	partial := strings.Join(updates, ", ")
+	query += partial
+	query += "where id = ? RETURNING id, name, email, age"
+	args = append(args, id)
+
+	var student types.Student
+	stmt, err := s.Db.Prepare(query)
+	if err != nil {
+		return types.Student{}, err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(args...).Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+
+	if err != nil {
+		fmt.Print("here????")
+		if err == sql.ErrNoRows {
+			return types.Student{}, fmt.Errorf("no student found with id %s", fmt.Sprint(id))
+		}
+		return types.Student{}, fmt.Errorf("query error: %w", err)
+	}
+
+	return student, nil
+
+}
+
+func (s *Sqlite) DeleteStudentById(id int64) (types.Student, error) {
+	stmt, err := s.Db.Prepare("DELETE FROM STUDENTS WHERE id = ? RETURNING id, name, email, age")
+	if err != nil {
+		return types.Student{}, err
+	}
+	defer stmt.Close()
+	var student types.Student
+	err = stmt.QueryRow(id).Scan(&student.Id, &student.Name, &student.Email, &student.Age)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return types.Student{}, fmt.Errorf("no student found with id %s", fmt.Sprint(id))
+		}
+		return types.Student{}, fmt.Errorf("query error: %w", err)
+	}
+	return student, nil
 }

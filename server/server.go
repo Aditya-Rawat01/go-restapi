@@ -19,10 +19,12 @@ import (
 func ServerHandling(cfg *config.Config, storage *sqlite.Sqlite) {
 	router := http.NewServeMux()
 
-	router.HandleFunc("GET /ping", ping.New())
-	router.HandleFunc("POST /api/students", student.New(storage))
-	router.HandleFunc("GET /api/students/{id}", student.GetById(storage))
-	router.HandleFunc("GET /api/students/", student.GetList(storage))
+	router.HandleFunc("GET /ping", ping.New()) // health endpoint
+	router.HandleFunc("POST /api/students", student.New(storage)) // create new student
+	router.HandleFunc("GET /api/students/{id}", student.GetById(storage)) // get student by id
+	router.HandleFunc("GET /api/students/", student.GetList(storage)) // get all students
+	router.HandleFunc("PUT /api/students/{id}", student.UpdateStudent(storage)) // update the student by id
+	router.HandleFunc("DELETE /api/students/{id}", student.DeleteStudentById(storage)) // delete the student by id
 	
 	server := http.Server{
 		Addr:    cfg.Addr,

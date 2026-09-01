@@ -21,6 +21,7 @@ func WriteJSON(w http.ResponseWriter, status int, data any) error {
 	return json.NewEncoder(w).Encode(data)
 }
 
+// because cleaner and normal .Encode(err) will not be able to encode the underlying error message and it will result in {}, so use this.
 func GeneralError(err error) Response {
 	return Response{
 		Status: "Error",
@@ -41,6 +42,6 @@ func ValidationError(errs validator.ValidationErrors) Response {
 
 	return Response{
 		Status: "Validation Error",
-		Error: strings.Join(errMsgs,", "),
+		Error:  strings.Join(errMsgs, ", "),
 	}
 }
