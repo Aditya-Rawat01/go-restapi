@@ -85,7 +85,6 @@ func (s *Sqlite) GetAllStudents() ([]types.Student, error) {
 	}
 	defer rows.Close()
 	var students []types.Student
-
 	for rows.Next() {
 		var student types.Student
 		err := rows.Scan(&student.Id, &student.Name, &student.Email, &student.Age)
@@ -94,6 +93,9 @@ func (s *Sqlite) GetAllStudents() ([]types.Student, error) {
 			return nil, err
 		}
 		students = append(students, student)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return students, nil
